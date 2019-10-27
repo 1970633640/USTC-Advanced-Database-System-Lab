@@ -10,7 +10,7 @@ using namespace std;
 
 struct bFrame
 {
-    char field [FRAMESIZE];  //题目写错了！
+    char field [FRAMESIZE];  //题目写错了！typo
 };
 
 class DSMgr
@@ -31,8 +31,10 @@ public:
     void InitFile(string filename,int page_count);
 private:
     FILE *currFile;
-    int numPages;
-    int pages[MAXPAGES];
+    int numPages;  //页数 就是50000  实验中应该不会变
+    int pages[MAXPAGES]; //就是初始化那里写了50000个1的地方 表示对应的page是否被使用  实验中应该都是1
+    //自定义数据
+    int PagesStart;//Page内容开始的字节数  应该对齐4096 从页数、50000个1之后开始
 };
 
 #endif // DSMGR_H_INCLUDED

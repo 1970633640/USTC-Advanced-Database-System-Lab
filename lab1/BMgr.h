@@ -33,7 +33,7 @@ public:
     BMgr();
 // Interface functions
     int FixPage(int page_id, int prot);
-    NewPage FixNewPage(); //题目写错了！
+    NewPage FixNewPage(); //题目写错了！  而且这个函数根本用不到！
     int UnfixPage(int page_id);
     int NumFreeFrames();
 // Internal Functions
