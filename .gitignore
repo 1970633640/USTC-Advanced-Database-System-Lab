@@ -32,3 +32,6 @@
 *.app
 *.cbp
 *.layout
+*.save
+*.depend
+*.dbf
