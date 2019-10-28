@@ -1,6 +1,7 @@
-#ifndef DSMGR_H_INCLUDED
-#define DSMGR_H_INCLUDED
+#ifndef DSM_H_INCLUDED
+#define DSM_H_INCLUDED
 
+#define DEFBUFSIZE 1024
 #define FRAMESIZE 4096
 #define MAXPAGES 50000
 #include <string.h>
@@ -10,13 +11,14 @@ using namespace std;
 
 struct bFrame
 {
-    char field [FRAMESIZE];  //题目写错了！typo
+    char field[FRAMESIZE];  //题目写错了！typo
 };
 
-class DSMgr
+
+class DSM
 {
 public:
-    DSMgr();
+    DSM();
     int OpenFile(string filename);
     int CloseFile();
     bFrame ReadPage(int page_id);
@@ -28,7 +30,7 @@ public:
     void SetUse(int index, int use_bit);
     int GetUse(int index);
     //自定义函数
-    void InitFile(string filename,int page_count);
+    void InitFile(string filename, int page_count);
 private:
     FILE *currFile;
     int numPages;  //页数 就是50000  实验中应该不会变
@@ -37,4 +39,4 @@ private:
     int PagesStart;//Page内容开始的字节数  应该对齐4096 从页数、50000个1之后开始
 };
 
-#endif // DSMGR_H_INCLUDED
+#endif // DSM_H_INCLUDED
