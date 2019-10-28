@@ -11,7 +11,7 @@ int main()
     fclose(file);
     cout << "创建dbf文件完毕" << endl;
     BMgr buffer_manager;
-    buffer_manager.ds.InitFile("data.dbf",50000)
+    buffer_manager.ds.InitFile("data.dbf",50000);
     cout << "DSMgr初始化dbf文件完毕" << endl;
     buffer_manager.ds.OpenFile("data.dbf");
     return 0;
