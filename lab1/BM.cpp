@@ -1,18 +1,68 @@
-#include "BM.h"
-#include "DSM.h"
-#include <iostream>
-using namespace std;
-BCB::BCB()
-{
+#include "bm.h"
+#include <stdlib.h>
 
+int hit = 0;
+int miss = 0;
+int read = 0;
+int write = 0;
+
+BCB::BCB(): page_id(-1), frame_id(-1), count(0), dirty(0), next(NULL)
+{
 }
 
-BM::BM()
+BMgr::BMgr()
 {
+    for(int i = 0; i < DEFBUFSIZE; i++)
+    {
+        ftop[i] = -1;
+        ptof[i] = NULL;
+        buf[i] = (bFrame*)malloc( sizeof(bFrame));
+    }
 
 }
+int BMgr::newBCB(int page_id)
+{
+    int frame_id = -1;
+    BCB* bcb = new BCB();
+    if(lru.size() < DEFBUFSIZE) //lru没满
+    {
 
-int BM::FixPage(int page_id, int prot)
+    }
+    else //LRU满了 需要淘汰
+    {
+        frame_id = SelectVictim(); //此时已经被淘汰、释放
+        lru.remove(frame_id);
+    }
+    //找到ftop的空余并使用  但是需要之后的操作建立BCB->frame关系
+    bcb->page_id = page_id;
+    bool suc = false;
+    for(int i = 0; i < DEFBUFSIZE; i++)
+        if(ftop[i] == -1)
+        {
+            ftop[i] = page_id;
+            bcb->frame_id = i;
+            frame_id = i;
+            suc = true;
+            break;
+        }
+    if(suc == false)cout << "错误！LRU和ftop关系维护错误！！！！！" << endl;
+    //新建的bcb需要连接到ptof哈希表开链上  找到BCB才获取frame 从而实现ptof
+    BCB* head = ptof[Hash(bcb->page_id)];
+    if(head == NULL) //此处是空 直接指向自身
+    {
+        ptof[Hash(bcb->page_id)] = bcb;
+    }
+    else //已有 最后一项的next指向自身
+    {
+        while(head->next != NULL)head = head->next;
+        head->next = bcb;
+    }
+    bcb->count = bcb->count + 1;
+
+    lru.push_front(frame_id);
+    return frame_id;
+}
+int BMgr::FixPage(int page_id, int prot)
 {
     int frame_id = -1; //返回值
     if(prot != 0)
@@ -20,71 +70,35 @@ int BM::FixPage(int page_id, int prot)
         cout << "警告！prot参数没有任何用处！" << endl;
     }
     BCB* bcb = ptof[Hash(page_id)];
-    while(bcb->next != NULL && bcb->page_id != page_id)
+    while(bcb != NULL && bcb->next != NULL && bcb->page_id != page_id)
     {
         bcb = bcb->next;
     }
-    if(bcb != NULL) //准备读写的页面已经在缓存中，应该更新lru表 缓存命中
+    if(bcb != NULL && bcb->page_id == page_id) //准备读写的页面已经在缓存中，应该更新lru表 缓存命中
     {
+        hit += 1;
         frame_id = bcb->frame_id;
         lru.remove(frame_id);
         lru.push_front(frame_id);
+        bcb->count = bcb->count + 1;
     }
     else //准备读写的页面不在缓存中，需要读取、建立BCB、检查并处理LRU是否需要淘汰、更新LRU
     {
-        BCB* bcb = new BCB();
-        if(lru.size() < DEFBUFSIZE) //lru没满
-        {
-            bcb->count = 0;
-            bcb->dirty = 0;
-            bcb->page_id = page_id;
-            bcb->next = NULL;
-            bool suc = false;
-            for(int i = 0; i > DEFBUFSIZE; i++)
-                if(ftop[i] == -1)
-                {
-                    ftop[i] = page_id;
-                    bcb->frame_id = i;
-                    frame_id = i;
-                    suc = true;
-                    break;
-                }
-            if(suc == false)cout << "错误！LRU和ftop关系维护错误！！！！！" << endl;
-            lru.push_front(frame_id);
-        }
-        else //LRU满了 需要淘汰
-        {
-            frame_id = SelectVictim(); //此时已经被淘汰、释放
-            lru.remove(frame_id);
-            bcb->count = 0;
-            bcb->dirty = 0;
-            bcb->page_id = page_id;
-            bcb->next = NULL;
-            bcb->frame_id = frame_id;
-            lru.push_front(frame_id);
-        }
-        //新建的bcb需要连接到哈希表开链上
-        BCB* head = ptof[Hash(bcb->page_id)];
-        if(head == NULL)
-        {
-            ptof[Hash(bcb->page_id)] = bcb;
-        }
-        else
-        {
-            while(head->next != NULL)head = head->next;
-            head->next = bcb;
-        }
+        miss += 1;
+        read += 1;
+        frame_id = newBCB(page_id);
+        memcpy(buf[frame_id], (ds.ReadPage(page_id)).field,sizeof(*(buf[frame_id])));
     }
-    bcb->count = bcb->count + 1;
+
     return frame_id;
 }
 
-NewPage BM::FixNewPage() //题目写错了！  而且这个函数根本用不到！
+NewPage BMgr::FixNewPage() //题目写错了！  而且这个函数根本用不到！
 {
     cout << "警告！正在使用本实验不需要的函数！" << endl;
 }
 
-int BM::UnfixPage(int page_id)
+int BMgr::UnfixPage(int page_id)
 {
     BCB* bcb = ptof[Hash(page_id)];
     while(bcb->next != NULL && bcb->page_id != page_id)
@@ -99,7 +113,7 @@ int BM::UnfixPage(int page_id)
     return bcb->frame_id;
 }
 
-int BM::NumFreeFrames()
+int BMgr::NumFreeFrames()
 {
     int answer = 0;
     for (int i = 0; i < DEFBUFSIZE; i++)
@@ -113,7 +127,7 @@ int BM::NumFreeFrames()
 }
 
 // Internal Functions
-int BM::SelectVictim()
+int BMgr::SelectVictim()
 {
     int answer;
     BCB* bcb = NULL;
@@ -136,19 +150,20 @@ int BM::SelectVictim()
         answer = bcb->frame_id;
         if(bcb->dirty == true)
         {
-            ds.WritePage(bcb->page_id, buf[answer]);
+            ds.WritePage(bcb->page_id,*(buf[answer]));
+            write += 1;
         }
         RemoveBCB(bcb, bcb->page_id);
         return answer;
     }
 }
 
-int BM::Hash(int page_id)
+int BMgr::Hash(int page_id)
 {
     return page_id % DEFBUFSIZE;
 }
 
-void BM::RemoveBCB(BCB * ptr, int page_id) //删除链表元素
+void BMgr::RemoveBCB(BCB * ptr, int page_id) //删除链表元素
 {
     BCB* head = ptof[Hash(ptr->page_id)];
     ftop[ptr->frame_id] = -1; //释放哈希表
@@ -165,12 +180,12 @@ void BM::RemoveBCB(BCB * ptr, int page_id) //删除链表元素
     }
 }
 
-void BM::RemoveLRUEle(int frid)
+void BMgr::RemoveLRUEle(int frid)
 {
     lru.remove(frid);
 }
 
-void BM::SetDirty(int frame_id)
+void BMgr::SetDirty(int frame_id)
 {
     BCB* bcb = ptof[Hash(ftop[frame_id])];
     while(bcb->next != NULL && bcb->frame_id != frame_id)bcb = bcb->next;
@@ -178,7 +193,7 @@ void BM::SetDirty(int frame_id)
     else bcb->dirty = 1;
 }
 
-void BM::UnsetDirty(int frame_id)
+void BMgr::UnsetDirty(int frame_id)
 {
     BCB* bcb = ptof[Hash(ftop[frame_id])];
     while(bcb->next != NULL && bcb->frame_id != frame_id)bcb = bcb->next;
@@ -186,7 +201,7 @@ void BM::UnsetDirty(int frame_id)
     else bcb->dirty = 0;
 }
 
-void BM::WriteDirtys()
+void BMgr::WriteDirtys()
 {
     list<int>::iterator it;
     for(it = lru.begin(); it != lru.end(); it++)
@@ -201,22 +216,15 @@ void BM::WriteDirtys()
         {
             if(bcb->dirty == 1)
             {
-                ds.WritePage(bcb->page_id, buf[bcb->frame_id]);
+                ds.WritePage(bcb->page_id, *(buf[bcb->frame_id]));
+                write += 1;
             }
         }
     }
 }
-void BM::PrintFrame(int frame_id)
+void BMgr::PrintFrame(int frame_id)
 {
-    cout << "frame_id:" << frame_id << " \nvalue:" << buf[frame_id].field << endl;
+    cout << "frame_id:" << frame_id << " \nvalue:" << (*buf[frame_id]).field << endl;
 }
 
-void BM::InitBuf(int buf_size)
-{
-    for(int i = 0; i < buf_size; i++)
-    {
-        ftop[i] = -1;
-        ptof[i] = NULL;
-        memset(buf[i].field, 0, FRAMESIZE); //非必须
-    }
-}
+

@@ -7,6 +7,8 @@
 #include <string.h>
 #include <string>
 #include <cstdio>
+#include <iostream>
+
 using namespace std;
 
 struct bFrame
@@ -15,10 +17,9 @@ struct bFrame
 };
 
 
-class DSM
+class DSMgr
 {
 public:
-    DSM();
     int OpenFile(string filename);
     int CloseFile();
     bFrame ReadPage(int page_id);
