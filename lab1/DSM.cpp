@@ -70,6 +70,7 @@ FILE * DSMgr::GetFile()
 
 void DSMgr::IncNumPages()  //实验中用不到的功能
 {
+     if((4+numPages)%4096==0)cout<<"警告！由于页面数增加，USE位占用所需的页面数增加了一页，dbf文件将损坏！"<<endl;
     numPages++;
 }
 

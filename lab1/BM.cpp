@@ -18,8 +18,8 @@ BMgr::BMgr()
         ptof[i] = NULL;
         buf[i] = (bFrame*)malloc( sizeof(bFrame));
     }
-
 }
+
 int BMgr::newBCB(int page_id)
 {
     int frame_id = -1;
@@ -62,6 +62,7 @@ int BMgr::newBCB(int page_id)
     lru.push_front(frame_id);
     return frame_id;
 }
+
 int BMgr::FixPage(int page_id, int prot)
 {
     int frame_id = -1; //返回值
@@ -87,7 +88,7 @@ int BMgr::FixPage(int page_id, int prot)
         miss += 1;
         read += 1;
         frame_id = newBCB(page_id);
-        memcpy(buf[frame_id], (ds.ReadPage(page_id)).field,sizeof(*(buf[frame_id])));
+        memcpy(buf[frame_id], (ds.ReadPage(page_id)).field, sizeof(*(buf[frame_id])));
     }
 
     return frame_id;
@@ -96,6 +97,20 @@ int BMgr::FixPage(int page_id, int prot)
 NewPage BMgr::FixNewPage() //题目写错了！  而且这个函数根本用不到！
 {
     cout << "警告！正在使用本实验不需要的函数！" << endl;
+    NewPage newpage;
+    int i;
+    for(i = 0;i<ds.GetNumPages();i++)
+    {
+        if(ds.GetUse(i)==0)break;
+    }
+    if(i==ds.GetNumPages()) //所有page都被使用 需要增加dbf文件大小
+    {
+        ds.IncNumPages();
+        ds.SetUse(i,1);
+    }
+    newpage.page_id=i;
+    newpage.frame_id=FixPage(i,0);
+    return newpage;
 }
 
 int BMgr::UnfixPage(int page_id)
@@ -150,7 +165,7 @@ int BMgr::SelectVictim()
         answer = bcb->frame_id;
         if(bcb->dirty == true)
         {
-            ds.WritePage(bcb->page_id,*(buf[answer]));
+            ds.WritePage(bcb->page_id, *(buf[answer]));
             write += 1;
         }
         RemoveBCB(bcb, bcb->page_id);

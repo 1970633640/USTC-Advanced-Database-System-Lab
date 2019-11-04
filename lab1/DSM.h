@@ -32,6 +32,7 @@ public:
     int GetUse(int index);
     //自定义函数
     void InitFile(string filename, int page_count);
+
 private:
     FILE *currFile;
     int numPages;  //页数 就是50000  实验中应该不会变
