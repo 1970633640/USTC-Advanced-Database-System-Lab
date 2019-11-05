@@ -9,6 +9,7 @@ int DSMgr::OpenFile(string filename)
     fread(&numPages, 4, 1, currFile);
     cout<<"文件中的page数:"<<numPages<<endl;
     PagesStart = int((numPages * 1 + 1 * 4 - 1) / FRAMESIZE + 1) * FRAMESIZE;
+    cout<<"文件中的page从"<<PagesStart<<"字节处开始"<<endl;
     char pagesbyte[MAXPAGES];
     memset(pagesbyte, 0, numPages);
     fread(pagesbyte, 1, numPages, currFile);

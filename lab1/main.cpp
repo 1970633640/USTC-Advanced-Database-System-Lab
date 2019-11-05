@@ -14,12 +14,12 @@ int main()
 {
 
     cout << "创建空dbf文件" << endl;
-    FILE* file = fopen("data.dbf","w");
+    FILE* file = fopen("data.dbf", "w");
     fclose(file);
 
     cout << "创建dbf文件完毕" << endl;
 
-   BMgr buffer_manager;
+    BMgr buffer_manager;
     buffer_manager.ds.InitFile("data.dbf", 50000);
     cout << "DSMgr初始化dbf文件完毕\n开始测试" << endl;
 
@@ -28,7 +28,7 @@ int main()
     int operation;
     int page;
     int frame_id;
-    int i=0;
+    int i = 0;
     while(fscanf(file2, "%d,%d", &operation, &page) != EOF)
     {
         i++;
@@ -42,7 +42,7 @@ int main()
     }
     buffer_manager.WriteDirtys();
     buffer_manager.ds.CloseFile();
-    cout<<"total tests:"<<i<<"\nhit: "<<hit<<" miss:"<<miss<<" read:"<<read<< " write:"<<write<<endl;
+    cout << "total tests:" << i << "\nhit: " << hit << " miss:" << miss << " read:" << read << " write:" << write << endl;
     return 0;
 }
 

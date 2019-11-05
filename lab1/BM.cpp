@@ -66,6 +66,10 @@ int BMgr::newBCB(int page_id)
 int BMgr::FixPage(int page_id, int prot)
 {
     int frame_id = -1; //返回值
+    if (page_id >= 50000)
+    {
+        cout << "警告！！测试数据超过50000！" << endl;
+    }
     if(prot != 0)
     {
         cout << "警告！prot参数没有任何用处！" << endl;
@@ -99,17 +103,17 @@ NewPage BMgr::FixNewPage() //题目写错了！  而且这个函数根本用不�
     cout << "警告！正在使用本实验不需要的函数！" << endl;
     NewPage newpage;
     int i;
-    for(i = 0;i<ds.GetNumPages();i++)
+    for(i = 0; i < ds.GetNumPages(); i++)
     {
-        if(ds.GetUse(i)==0)break;
+        if(ds.GetUse(i) == 0)break;
     }
-    if(i==ds.GetNumPages()) //所有page都被使用 需要增加dbf文件大小
+    if(i == ds.GetNumPages()) //所有page都被使用 需要增加dbf文件大小
     {
         ds.IncNumPages();
-        ds.SetUse(i,1);
+        ds.SetUse(i, 1);
     }
-    newpage.page_id=i;
-    newpage.frame_id=FixPage(i,0);
+    newpage.page_id = i;
+    newpage.frame_id = FixPage(i, 0);
     return newpage;
 }
 
