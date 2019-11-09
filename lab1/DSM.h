@@ -31,7 +31,7 @@ public:
     void SetUse(int index, int use_bit);
     int GetUse(int index);
     //自定义函数
-    void InitFile(string filename, int page_count);
+    void InitFile(string filename);
 
 private:
     FILE *currFile;

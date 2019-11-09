@@ -20,9 +20,20 @@ int main()
     cout << "创建dbf文件完毕" << endl;
 
     BMgr buffer_manager;
-    buffer_manager.ds.InitFile("data.dbf", 50000);
-    cout << "DSMgr初始化dbf文件完毕\n开始测试" << endl;
+    BMgr buffer_manager_init; //初始化用的
+    buffer_manager_init.ds.InitFile("data.dbf");
+    buffer_manager_init.ds.OpenFile("data.dbf");
+    for (int i=0;i<50000;i++)
+    {
+        NewPage newpage;
+        newpage=buffer_manager_init.FixNewPage();
+        buffer_manager_init.UnfixPage(newpage.page_id);
+    }
+    buffer_manager_init.ds.CloseFile();
+    cout << "hit: " << hit << " miss:" << miss << endl;
+    cout << "DSMgr初始化dbf文件完毕\n\n开始测试" << endl;
 
+    hit=0;miss=0;read=0;write=0;
     buffer_manager.ds.OpenFile("data.dbf");
     FILE* file2 = fopen("data-5w-50w-zipf.txt", "r");
     int operation;
@@ -32,6 +43,7 @@ int main()
     while(fscanf(file2, "%d,%d", &operation, &page) != EOF)
     {
         i++;
+        page-=1;
         frame_id = buffer_manager.FixPage(page, 0);
         if(operation == 1)
         {

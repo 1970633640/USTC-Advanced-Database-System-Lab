@@ -98,9 +98,8 @@ int BMgr::FixPage(int page_id, int prot)
     return frame_id;
 }
 
-NewPage BMgr::FixNewPage() //题目写错了！  而且这个函数根本用不到！
+NewPage BMgr::FixNewPage() //题目写错了！
 {
-    cout << "警告！正在使用本实验不需要的函数！" << endl;
     NewPage newpage;
     int i;
     for(i = 0; i < ds.GetNumPages(); i++)
@@ -126,7 +125,7 @@ int BMgr::UnfixPage(int page_id)
     }
     if(bcb == NULL)
     {
-        cout << "缓存错误！尝试删除不在缓存中的页面缓存！" << endl;
+        cout << "缓存错误！尝试释放不在缓存中的页面！" << endl;
     }
     bcb->count = bcb->count - 1;
     return bcb->frame_id;
