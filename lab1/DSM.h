@@ -1,7 +1,7 @@
 #ifndef DSM_H_INCLUDED
 #define DSM_H_INCLUDED
 
-#define DEFBUFSIZE 1024
+#define DEFBUFSIZE 1
 #define FRAMESIZE 4096
 #define MAXPAGES 50000
 #include <string.h>

@@ -1,19 +1,20 @@
 #include "dsm.h"
 
-
+int read = 0;
+int write = 0;
 
 
 int DSMgr::OpenFile(string filename)
 {
     cout<<"打开dbf文件"<<endl;
-    currFile = fopen(filename.c_str(), "r+");
+    currFile = fopen(filename.c_str(), "rb+");
     fread(&numPages, 4, 1, currFile);
     cout << "文件中的page数:" << numPages << endl;
-    PagesStart = int((MAXPAGES * 1 + 1 * 4 - 1) / FRAMESIZE + 1) * FRAMESIZE;
+    PagesStart = ((MAXPAGES * 1 + 1 * 4 - 1) / FRAMESIZE + 1) * FRAMESIZE;
     cout << "文件中的page指针们从" << PagesStart << "字节处开始" << endl;
     char pagesbyte[MAXPAGES];
     memset(pagesbyte, 0, numPages);
-    fread(pagesbyte, 1, numPages, currFile);
+    fread(pagesbyte, numPages, 1, currFile);
     for(int i = 0; i < numPages; i++)
     {
         if(pagesbyte[i] == '0')
@@ -51,8 +52,10 @@ bFrame DSMgr::ReadPage(int page_id)
     Seek(PagesStart, page_id * 4);
     int p;
     fread(&p, 4, 1, currFile);
+
     Seek(PagesStart, p);
     fread(bf.field, FRAMESIZE, 1, currFile);
+    read+=1;
     return bf;
 }
 
@@ -61,8 +64,10 @@ int DSMgr::WritePage(int page_id, bFrame frm) //写页时不涉及写入页使�
     Seek(PagesStart, page_id * 4);
     int p;
     fread(&p, 4, 1, currFile);
+
     Seek(PagesStart, p);
     fwrite(frm.field, FRAMESIZE, 1, currFile);
+    write+=1;
     return FRAMESIZE;
 }
 
@@ -91,9 +96,13 @@ void DSMgr::SetUse(int index, int use_bit)
 {
     if(pages[index]==0 && use_bit==1) //新开辟
     {
-        int p=PagesStart+((MAXPAGES*4-1)/4096+1)*4096+4096*index;
-        Seek(PagesStart,index*8);
+        int p=((MAXPAGES*4-1)/4096+1)*4096+4096*index;
+        Seek(PagesStart,index*4);
         fwrite(&p, 4, 1, currFile); //写入指针
+        Seek(PagesStart,p);
+        bFrame b;
+        memset(b.field,0,FRAMESIZE);
+        fwrite(b.field,FRAMESIZE,1,currFile);
     }
     pages[index] = use_bit;
 }

@@ -3,8 +3,7 @@
 
 int hit = 0;
 int miss = 0;
-int read = 0;
-int write = 0;
+
 
 BCB::BCB(): page_id(-1), frame_id(-1), count(0), dirty(0), next(NULL)
 {
@@ -66,9 +65,9 @@ int BMgr::newBCB(int page_id)
 int BMgr::FixPage(int page_id, int prot)
 {
     int frame_id = -1; //返回值
-    if (page_id >= 50000)
+    if (page_id >= 50000 || page_id<0)
     {
-        cout << "警告！！测试数据超过50000！" << endl;
+        cout << "警告！！测试数据超出允许范围！ " <<page_id<< endl;
     }
     if(prot != 0)
     {
@@ -90,7 +89,6 @@ int BMgr::FixPage(int page_id, int prot)
     else //准备读写的页面不在缓存中，需要读取、建立BCB、检查并处理LRU是否需要淘汰、更新LRU
     {
         miss += 1;
-        read += 1;
         frame_id = newBCB(page_id);
         memcpy(buf[frame_id], (ds.ReadPage(page_id)).field, sizeof(*(buf[frame_id])));
     }
@@ -101,7 +99,7 @@ int BMgr::FixPage(int page_id, int prot)
 NewPage BMgr::FixNewPage() //题目写错了！
 {
     NewPage newpage;
-    int i;
+    int i=0;
     for(i = 0; i < ds.GetNumPages(); i++)
     {
         if(ds.GetUse(i) == 0)break;
@@ -169,7 +167,6 @@ int BMgr::SelectVictim()
         if(bcb->dirty == true)
         {
             ds.WritePage(bcb->page_id, *(buf[answer]));
-            write += 1;
         }
         RemoveBCB(bcb, bcb->page_id);
         return answer;
@@ -235,7 +232,6 @@ void BMgr::WriteDirtys()
             if(bcb->dirty == 1)
             {
                 ds.WritePage(bcb->page_id, *(buf[bcb->frame_id]));
-                write += 1;
             }
         }
     }

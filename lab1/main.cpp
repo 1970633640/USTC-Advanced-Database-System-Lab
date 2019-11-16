@@ -16,18 +16,18 @@ int main()
     cout << "创建空dbf文件" << endl;
     FILE* file = fopen("data.dbf", "w");
     fclose(file);
-
     cout << "创建dbf文件完毕" << endl;
 
     BMgr buffer_manager;
     BMgr buffer_manager_init; //初始化用的
+
     buffer_manager_init.ds.InitFile("data.dbf");
     buffer_manager_init.ds.OpenFile("data.dbf");
     for (int i=0;i<50000;i++)
     {
         NewPage newpage;
         newpage=buffer_manager_init.FixNewPage();
-        buffer_manager_init.UnfixPage(newpage.page_id);
+       buffer_manager_init.UnfixPage(newpage.page_id);
     }
     buffer_manager_init.ds.CloseFile();
     cout << "hit: " << hit << " miss:" << miss << endl;
@@ -36,6 +36,7 @@ int main()
     hit=0;miss=0;read=0;write=0;
     buffer_manager.ds.OpenFile("data.dbf");
     FILE* file2 = fopen("data-5w-50w-zipf.txt", "r");
+//    FILE* file2 = fopen("t2.txt", "r");
     int operation;
     int page;
     int frame_id;
